@@ -1,23 +1,24 @@
-import face_recognition  # A library for face recognition.
-import os  # Provides a way to interact with the operating system, such as reading or writing files.
-import sys  # Provides access to some variables used or maintained by the Python interpreter.
-import base64  # Handles encoding and decoding data using base64.
-from cryptography.fernet import Fernet  # A symmetric encryption algorithm for securing data.
-from cryptography.hazmat.primitives import hashes  # Used for password-based key derivation.
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC  # Used for password-based key derivation.
-import tkinter as tk  # Python's standard GUI (Graphical User Interface) package.
-from tkinter import filedialog  # Provides dialogs for file selection.
-import shutil  # Offers a higher-level interface for file operations.
-import cv2  # OpenCV library for computer vision tasks.
-from PIL import Image  # Python Imaging Library for image processing.
-import numpy as np  # A library for numerical operations on arrays.
-from tkinter import messagebox  # Part of tkinter for creating message boxes.
+import face_recognition # A library for face recognition.
+import os # Provides a way to interact with the operating system, such as reading or writing files.
+import sys # Provides access to some variables used or maintained by the Python interpreter.
+import base64 # Handles encoding and decoding data using base64.
+from cryptography.fernet import Fernet # A symmetric encryption algorithm for securing data.
+from cryptography.hazmat.primitives import hashes # Used for password-based key derivation.
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC # Used for password-based key derivation.
+import tkinter as tk # Python's standard GUI (Graphical User Interface) package.
+from tkinter import filedialog # Provides dialogs for file selection.
+import shutil # Offers a higher-level interface for file operations.
+import cv2 # OpenCV library for computer vision tasks.
+from PIL import Image # Python Imaging Library for image processing.
+import numpy as np # A library for numerical operations on arrays.
+from tkinter import messagebox # Part of tkinter for creating message boxes.
 from tkinter import *
-import pyAesCrypt  # A library for AES encryption.
-import hashlib  # Provides hash functions.
+import pyAesCrypt # A library for AES encryption.
+import hashlib # Provides hash functions.
 import tkinter.filedialog as filedialog
-import io  # A core Python module for handling streams.
-from PIL import Image, ImageTk  # A module to display images in the tkinter GUI.
+import io # A core Python module for handling streams.
+from PIL import Image, ImageTk # A module to display images in the tkinter GUI.
+import binascii
 
 # Function to generate a key from a password and salt
 def generate_key(password, salt):
@@ -45,7 +46,15 @@ def encrypt_folder(directory_path, key):
             encrypted_data = cipher_suite.encrypt(file_data)
             with open(file_path, 'wb') as file:
                 file.write(encrypted_data)
-    print("Folder Encrypted successfully.")
+    info_page = tk.Tk()
+    info_page.title("Info") # Set the title of the window
+    info_page.geometry("400x300") # Set the size of the window
+    # Create and display a title label
+    title = tk.Label(info_page, text="SecureBox", font=("Arial", 20))
+    title.pack(pady=20)
+    # Create and display a description label with word wrapping
+    desc = tk.Label(info_page, text="Folder Encrypted successfully ", wraplength=300)
+    desc.pack()
 
 # Function to decrypt files in a folder using a given key (linked with face_recognition_folder)
 def decrypt_folder_face(directory_path, key):
@@ -65,7 +74,17 @@ def decrypt_folder(directory_path, key):
             decrypted_data = cipher_suite.decrypt(encrypted_data)
             with open(file_path, 'wb') as file:
                 file.write(decrypted_data)
-    print("Folder decrypted successfully.")
+    info_page = tk.Tk()
+    info_page.title("Info") # Set the title of the window
+    info_page.geometry("400x300") # Set the size of the window
+    # Create and display a title label
+    title = tk.Label(info_page, text="SecureBox", font=("Arial", 20))
+    title.pack(pady=20)
+    # Create and display a description label with word wrapping
+    desc = tk.Label(info_page, text="Face Recognized ", wraplength=300)
+    desc.pack()
+    desc = tk.Label(info_page, text="Folder decrypted successfully ", wraplength=300)
+    desc.pack()
 
 # Function to convert data into 8-bit binary form using ASCII value of characters
 def genData(data):
@@ -111,36 +130,71 @@ def modPix(pix, data):
         yield pix[3:6]
         yield pix[6:9]
 
-# Function to encode data into an image
 def encode_enc(newimg, data):
-    w = newimg.size[0]
-    (x, y) = (0, 0)
-    for pixel in modPix(newimg.getdata(), data):
+	#binary_data = ''.join(format(ord(char), '08b') for char in data)
+	w = newimg.size[0]
+	(x, y) = (0, 0)
+	for pixel in modPix(newimg.getdata(), data):
         # Putting modified pixels in the new image
-        newimg.putpixel((x, y), pixel)
-        if (x == w - 1):
-            x = 0
-            y += 1
-        else:
-            x += 1
+		newimg.putpixel((x, y), pixel)
+		if (x == w - 1):
+			x = 0
+			y += 1
+		else:
+			x += 1
 
+input_entry_2 = ""
 # Function to encode data into an image (linked with face_recognition_image)
-def encode_face():
-    img = input("Enter image name(with extension) : ")
-    image = Image.open(img)  # Open the image file
-    data = input("Enter data to be encoded : ")
-    if (len(data) == 0):
-        raise ValueError('Data is empty')
-    newimg = image.copy()
-    encode_enc(newimg, data)
-    new_img_name = input("Enter the name of the new image(with extension) : ")
-    newimg.save(new_img_name, str(new_img_name.split(".")[1].upper()))
-    print("Image Encoded successfully.")
+def encode_image(chosen_image):
+    global input_entry_2  # Declare input_entry_2 as a global variable
+    image = Image.open(chosen_image)
+    info_page = tk.Tk()
+    info_page.title("Info")  # Set the title of the window
+    info_page.geometry("400x300")  # Set the size of the window
+    # Create and display a title label
+    title = tk.Label(info_page, text="SecureBox", font=("Arial", 20))
+    title.pack(pady=20)
+
+    input_label = tk.Label(info_page, text="Enter your secret data:")
+    input_label.pack()
+    input_entry = tk.Entry(info_page)
+    input_entry.pack()
+
+    def encode_with_data():
+        global input_entry_2  # Access the global variable
+        data = input_entry.get()
+        if len(data) == 0:
+            desc = tk.Label(info_page, text="Please enter some data", wraplength=300)
+            desc.pack()
+        else:
+            newimg = image.copy()
+            encode_enc(newimg, data)
+            input_label_2 = tk.Label(info_page, text="Enter the name of the new image (with extension): ")
+            input_label_2.pack()
+            input_entry_2 = tk.Entry(info_page)  # Define input_entry_2 as a global variable
+            input_entry_2.pack()
+
+            def save_encoded_image():
+                new_img_name = input_entry_2.get()
+                if "." not in new_img_name:
+                    desc = tk.Label(info_page, text="Please enter a filename with an extension (e.g., 'myimage.png')",wraplength=300)
+                    desc.pack()
+                else:
+                    newimg.save(new_img_name, str(new_img_name.split(".")[1].upper()))
+                    desc = tk.Label(info_page, text="Image Encoded successfully!", wraplength=300)
+                    desc.pack()
+
+            save_button = tk.Button(info_page, text="Save Encoded Image", command=save_encoded_image)
+            save_button.pack()
+
+    encode_button = tk.Button(info_page, text="Encode Image", command=encode_with_data)
+    encode_button.pack()
+
+    info_page.mainloop()
 
 # Function to decode data from an image
-def decode_face():
-    img = input("Enter image name(with extension) : ")
-    image = Image.open(img, 'r')
+def decode_image(chosen_image):
+    image = Image.open(chosen_image)
     data = ''
     imgdata = iter(image.getdata())
     while (True):
@@ -158,10 +212,9 @@ def decode_face():
         if (pixels[-1] % 2 != 0):
             return data
 
+
 # Function for face recognition on a folder
 def face_recognition_folder(directory_path, key):
-    print("Please Wait!")
-    print("Turning Camera On for Face Recognition")
     # Load face encoding and name
     face_encoding = []
     face_name = []
@@ -176,7 +229,7 @@ def face_recognition_folder(directory_path, key):
     img3_encoding = face_recognition.face_encodings(img3)[0]
 
     face_encoding.extend([img1_encoding, img2_encoding, img3_encoding])
-    face_name.extend(["Krishna", "Krishna", "Krishna"])  # Add more face names if needed
+    face_name.extend(["Krishna", "Krishna", "Krishna"]) # Add more face names if needed
 
     # Webcam initialize
     web = cv2.VideoCapture(0)
@@ -190,19 +243,24 @@ def face_recognition_folder(directory_path, key):
             matches = face_recognition.compare_faces(face_encoding, face_encod)
             name = 'Unknown'
         if True in matches:
-            print("Face Recognized")
             first_match = matches.index(True)
             name = face_name[first_match]
             decrypt_folder(directory_path, key)
             break
         else:
-            print("Face Not Recognized!")
+            info_page = tk.Tk()
+            info_page.title("Info") # Set the title of the window
+            info_page.geometry("400x300") # Set the size of the window
+            # Create and display a title label
+            title = tk.Label(info_page, text="SecureBox", font=("Arial", 20))
+            title.pack(pady=20)
+            # Create and display a description label with word wrapping
+            desc = tk.Label(info_page, text="Face Not Recognized!", wraplength=300)
+            desc.pack()
             break
 
 # Function for face recognition on an image
-def face_recognition_image():
-    print("Please Wait!")
-    print("Turning Camera On for Face Recognition")
+def face_recognition_image(chosen_image):
     # Load face encoding and name
     face_encoding = []
     face_name = []
@@ -217,7 +275,7 @@ def face_recognition_image():
     img3_encoding = face_recognition.face_encodings(img3)[0]
 
     face_encoding.extend([img1_encoding, img2_encoding, img3_encoding])
-    face_name.extend(["Krishna", "Krishna", "Krishna"])  # Add more face names if needed
+    face_name.extend(["Krishna", "Krishna", "Krishna"]) # Add more face names if needed
 
     # Webcam initialize
     web = cv2.VideoCapture(0)
@@ -231,22 +289,41 @@ def face_recognition_image():
             matches = face_recognition.compare_faces(face_encoding, face_encod)
             name = 'Unknown'
         if True in matches:
-            print("Face Recognized")
+            print("")
             first_match = matches.index(True)
             name = face_name[first_match]
-            print("Decoded Word : " + decode_face())
-            print("Image Decoded successfully.")
+            #print("Decoded Word : " + decode_image(chosen_image))
+            info_page = tk.Tk()
+            info_page.title("Info") # Set the title of the window
+            info_page.geometry("400x300") # Set the size of the window
+            # Create and display a title label
+            title = tk.Label(info_page, text="SecureBox", font=("Arial", 20))
+            title.pack(pady=20)
+            # Create and display a description label with word wrapping
+            desc = tk.Label(info_page, text="Face Recognized ", wraplength=300)
+            desc.pack()
+            desc = tk.Label(info_page, text="Decoded Word: "+ decode_image(chosen_image), font=(15), wraplength=300)
+            desc.pack()
+            desc = tk.Label(info_page, text="Image Decoded successfully.", wraplength=300)
+            desc.pack()
             break
         else:
-            print("Face Not Recognized!")
+            info_page = tk.Tk()
+            info_page.title("Info") # Set the title of the window
+            info_page.geometry("400x300") # Set the size of the window
+            # Create and display a title label
+            title = tk.Label(info_page, text="SecureBox", font=("Arial", 20))
+            title.pack(pady=20)
+            # Create and display a description label with word wrapping
+            desc = tk.Label(info_page, text="Face Not Recognized!", wraplength=300)
+            desc.pack()
             break
 
-# Function to display information and options using Tkinter
 def show_info(directory_path, key):
     # Create a new Tkinter window
     info_page = tk.Tk()
-    info_page.title("Info")  # Set the title of the window
-    info_page.geometry("400x300")  # Set the size of the window
+    info_page.title("Info") # Set the title of the window
+    info_page.geometry("400x300") # Set the size of the window
 
     # Create and display a title label
     title = tk.Label(info_page, text="SecureBox", font=("Arial", 20))
@@ -265,19 +342,60 @@ def show_info(directory_path, key):
     grid.pack(padx=20, pady=20)
 
     # Create and display a button for encrypting a folder
-    encrypt_folder_button = tk.Button(grid, text="Encrypt Folder", command=lambda: encrypt_folder(directory_path, key))
+    def choose_encrypt_folder():
+        chosen_folder = filedialog.askdirectory()
+        encrypt_folder(chosen_folder, key)
+    encrypt_folder_button = tk.Button(grid, text="Encrypt Folder", command=choose_encrypt_folder)
     encrypt_folder_button.grid(row=0, column=0, padx=5, pady=5)
 
+    def face_message_folder():
+        info_page = tk.Tk()
+        info_page.title("Info") # Set the title of the window
+        info_page.geometry("400x300") # Set the size of the window
+        # Create and display a title label
+        title = tk.Label(info_page, text="SecureBox", font=("Arial", 20))
+        title.pack(pady=20)
+        # Create and display a description label with word wrapping
+        desc = tk.Label(info_page, text="Please Wait! ", wraplength=300)
+        desc.pack()
+        desc = tk.Label(info_page, text="Turning Camera On for Face Recognition", wraplength=300)
+        desc.pack()
+        choose_decrypt_folder()
+        
+
     # Create and display a button for decrypting a folder
-    decrypt_folder_button = tk.Button(grid, text="Decrypt Folder", command=lambda: decrypt_folder_face(directory_path, key))
+    def choose_decrypt_folder():
+        chosen_folder = filedialog.askdirectory()
+        decrypt_folder_face(chosen_folder, key)
+    decrypt_folder_button = tk.Button(grid, text="Decrypt Folder", command=face_message_folder)
     decrypt_folder_button.grid(row=0, column=1, padx=5, pady=5, columnspan=10)
 
-    # Create and display a button for encoding an image
-    encode_button = tk.Button(grid, text="Encode", command=encode_face)
+ # Create and display a button for encoding an image
+    def choose_encode_image():
+        chosen_image = filedialog.askopenfilename()
+        encode_image(chosen_image)
+    encode_button = tk.Button(grid, text="Encode Image", command=choose_encode_image)
     encode_button.grid(row=1, column=0, padx=5, pady=5)
 
-    # Create and display a button for decoding an image
-    decode_button = tk.Button(grid, text="Decode", command=face_recognition_image)
+    def face_message_image():
+        info_page = tk.Tk()
+        info_page.title("Info") # Set the title of the window
+        info_page.geometry("400x300") # Set the size of the window
+        # Create and display a title label
+        title = tk.Label(info_page, text="SecureBox", font=("Arial", 20))
+        title.pack(pady=20)
+        # Create and display a description label with word wrapping
+        desc = tk.Label(info_page, text="Please Wait! ", wraplength=300)
+        desc.pack()
+        desc = tk.Label(info_page, text="Turning Camera On for Face Recognition", wraplength=300)
+        desc.pack()
+        choose_decode_image()
+
+# Create and display a button for decoding an image
+    def choose_decode_image():
+        chosen_image = filedialog.askopenfilename()
+        face_recognition_image(chosen_image)
+    decode_button = tk.Button(grid, text="Decode Image", command=face_message_image)
     decode_button.grid(row=1, column=1, padx=5, pady=5)
 
     # Create and display a button for logging out
@@ -289,14 +407,14 @@ def show_info(directory_path, key):
 
 def main():
     # Set the directory path, password, and generate a key
-    directory_path = "C:\\Users\\Krishna Sachdeva\\Desktop\\Encryption test"
+    directory_path = ""
     password = "09October2004"
     salt = os.urandom(16)
     key = generate_key(password, salt)
 
     # Show the main info page with buttons
     show_info(directory_path, key)
-   
+
 if __name__ == "__main__":
     # Run the main function when the script is executed
     main()
